@@ -18,14 +18,12 @@
 //one more Thing create a 'reset' and a 'new game' buttons as childs of the element with the id 'buttons'.
 //the reset button has to start the game again and the new game create a new game with new players and a new random board.
 
-//asking the players for the names using prompt
+//setting my variables for the players names
 const namePlayer1 = document.getElementById("name_player1");
 const namePlayer2 = document.getElementById("name_player2");
 
-// name_player1.textContent = prompt("You are Player 1, What is your name?");
-// name_player2.textContent = prompt("You are Player 2, What is your name?");
+//defining objets to store players information
 
-//defining objets to store player information
 let player1 = {
   name: (name_player1.textContent = prompt(
     "You are Player 1, What is your name?"
@@ -52,6 +50,25 @@ let player2 = {
   ],
 };
 
+// function to randomly add the ships to the boards
+function placeShip(player) {
+  while (player.shipCount < 4) {
+    let x = Math.floor(Math.random() * 4);
+    let y = Math.floor(Math.random() * 4);
+
+    if (player.board[x][y] === 0) {
+      console.log(player.name, ":", x, y);
+
+      player.board[x][y] = 1;
+      player.shipCount++;
+    }
+  }
+}
+placeShip(player1);
+placeShip(player2);
+
+//setting all my variables that are involved in the game
+
 const board_Player1 = document.getElementById("board_player1");
 const board_Player2 = document.getElementById("board_player2");
 const livesPlayer1 = document.getElementById("ships_player1");
@@ -61,12 +78,15 @@ livesPlayer2.textContent = 4;
 const ships_player1 = document.getElementById("ships_player1");
 const ships_player2 = document.getElementById("ships_player2");
 const turn_player = document.getElementById("turn_player");
-const button = document.getElementById("buttons");
-//this displays the turn to play
-// turn_player.textContent = player2.name;
-let activeBoard = "board_Player1";
 
-// let firstBoard;
+//displays who plays first
+turn_player.textContent = player1.name;
+
+let activeBoard = "board_player2";
+
+//whit this function I am adding the boards, swicth the players and finishes the game.
+//this function involves all the logic for playing the game
+
 function boardBuilt(player) {
   for (var x = 0; x < 4; x++) {
     const li = document.createElement("li"); // creating childs for the list (board),
@@ -76,39 +96,27 @@ function boardBuilt(player) {
       cell.className = "square"; // adding css properties to make it looks like a square
       cell.textContent = `${x},${y}`; // saves the coordinates as a string value 'x,y'
       cell.value = player.board[x][y]; //state of the cell
-      //I changed the code above
-
-      //function to add the ships
-      // function placeShip(player) {
-      //   let x = Math.floor(Math.random() * 4);
-      //   let y = Math.floor(Math.random() * 4);
-      // if (player.gameBoard[x][y] === 1) {
-      //     return
-      // } else {
-      //   console.log(x,y);
-
-      //   player.gameBoard[x][y]= 1;
-      //   player.shipCount++;
-      // }
-
-      //placeShip(player);
 
       //this function adds the click event to each cell
-
       cell.addEventListener("click", (e) => {
         let cell = e.target; // get the element clicked
         console.log(cell.textContent); //display the coordinates in the console
-        let playerClassName = cell.parentNode.parentNode.className; //className of clicked element
+        let playerClassName = cell.parentElement.parentElement.id; //className of clicked element
+
+        //this function allows the opposite player interact with the active board
 
         function switchPlayers() {
           if (activeBoard === "board_player1") {
             activeBoard = "board_player2";
-            turnNow.textContent = player1.name;
+            turn_player.textContent = player1.name;
           } else if (activeBoard === "board_player2") {
             activeBoard = "board_player1";
-            turnNow.textContent = player2.name;
+            turn_player.textContent = player2.name;
           }
         }
+        console.log(cell.value);
+        console.log(activeBoard);
+        // console.log(playerClassName);
         if (cell.value === 0 && activeBoard === playerClassName) {
           cell.style.visibility = "hidden"; // this  means that the contents of the element will be invisible,
           //but the element stays in its original position and size / try it clicking on any of the black cells
@@ -118,20 +126,31 @@ function boardBuilt(player) {
           cell.style.background = "purple"; //with this propertie you can change the background color of the
           //clicked cell. try comment the line bellow and uncomment this line. Do not forget to save this file
           //and refresh the browser to see the changes
-          cell.value = 3;
-          player.ships--;
-          ships_player1.textContent = player1.ships; // this may display lives after turns
-          ships_player2.textContent = player2.ships;
 
-          if (player.ships === 0) {
-            if (player === player1) gameOver(player2);
-            else gameOver(player1);
+          cell.value = 3;
+          player.shipCount--;
+          console.log(player);
+          ships_player1.textContent = player1.shipCount; // this may display lives after turns
+          ships_player2.textContent = player2.shipCount;
+        }
+        //this function finishes the game and displays the winner when the first board have the ship count in zero
+        function gameOver() {
+          let winner;
+          if (player1.shipCount === 0) {
+            winner = player2;
+          } else if (player2.shipCount === 0) {
+            winner = player1;
+          }
+          if (winner) {
+            turn_player.innerText = `Congratulations ${winner.name}!! you win`;
           }
         }
+        gameOver();
       });
 
       li.appendChild(cell); //adding each cell into the row number x
     }
+
     if (player === player1) {
       board_Player1.appendChild(li); //adding each row into the board
     } else {
@@ -139,56 +158,56 @@ function boardBuilt(player) {
     }
   }
 }
+
 boardBuilt(player1);
 boardBuilt(player2);
 
-// function boardBuilt(secondBoard) {
-//   for (var x = 0; x < 4; x++) {
-//     const li = document.createElement("li");
-//     // creating childs for the list (board), in this case represent a row number 'x' of the board
-//     for (var y = 0; y < 4; y++) {
-//       const cell = document.createElement("div");
-//       cell.className = "square"; // adding css properties to make it looks like a square
-//       cell.textContent = `${x},${y}`; // saves the coordinates as a string value 'x,y'
-//       cell.value = 0; //player.board[x][y]; //state of the cell
-//       //this function adds the click event to each cell
-//       cell.addEventListener("click", (e) => {
-//         let cell = e.target; // get the element clicked
-//         console.log(cell.textContent); //display the coordinates in the console
-//         let playerClassName = cell.parentNode.parentNode.className;
-//         function switchPlayers() {
-//           if (activeBoard === "board_player2") {
-//             activeBoard = "board_player1";
-//             turnNow.textContent = player2.name;
-//           } else if (activeBoard === "board_player1") {
-//             activeBoard = "board_player2";
-//             turnNow.textContent = player1.name;
-//           }
-//         }
-//         if (cell.value === 0 && activeBoard === playerClassName) {
-//           cell.style.visibility = "hidden"; // this  means that the contents of the element will be invisible,
-//           //but the element stays in its original position and size / try it clicking on any of the black cells
-//           //(in your browser) and see whats happens
-//           switchPlayers();
-//         } else if (cell.value === 1 && activeBoard === playerClassName) {
-//           cell.style.background = "purple"; //with this propertie you can change the background color of the
-//           //clicked cell. try comment the line bellow and uncomment this line. Do not forget to save this file
-//           //and refresh the borwser to see the changes
-//           cell.value = 3;
-//           player.ships--;
-//           ships_player1.textContent = player1.ships;
-//           ships_player2.textContent = player2.ships;
-//           if (player.ships === 0) {
-//             if (player === player2) gameOver(player1);
-//             else gameOver(player2);
-//           }
-//         }
-//       });
-//     }
-//     li.appendChild(cell); //adding each cell into the row number x
-//   }
+//with this function I create the reset and new game buttons
+function myFunction() {
+  const btnContainer = document.getElementById("buttons");
 
-//   secondBoard.appendChild(li); //adding each row into the board
-// }
+  //this is how I create the buttons
+  const reset = document.createElement("button");
+  const newGame = document.createElement("button");
+  reset.type = "button";
+  reset.id = "reset";
+  reset.innerHTML = "Reset";
+  newGame.id = "newGame";
+  newGame.innerHTML = "New Game";
 
-// boardBuilt();
+  //I add event listener to each button to make them work
+  //the reset button re start the game with same players, same ship location and the same ship count.
+  reset.addEventListener("click", (e) => {
+    //console.log("this is the button");
+    turn_player.textContent = player1.name;
+    board_Player1.innerHTML = "";
+    board_Player2.innerHTML = "";
+    boardBuilt(player1);
+    boardBuilt(player2);
+
+    function gameOver() {
+      let winner;
+      if (player1.shipCount === 0) {
+        winner = player2;
+      } else if (player2.shipCount === 0) {
+        winner = player1;
+      }
+      if (winner) {
+        turn_player.innerText = `Congratulations ${winner.name}!! you win`;
+      }
+    }
+    gameOver();
+  });
+
+  //the new game button starts the game with new players and new boards
+  newGame.addEventListener("click", (e) => {
+    //console.log("this is the button");
+    alert("You will start a New Game, please press enter to confirm");
+    //this is the code to refresh the browser and start a new game with new players, new lives and new ship location
+    location.reload(true);
+  });
+
+  btnContainer.appendChild(reset);
+  btnContainer.appendChild(newGame);
+}
+myFunction();
